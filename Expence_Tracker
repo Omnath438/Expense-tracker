@@ -12,7 +12,6 @@ def add_expense():
 
     print("Expense added successfully!")
 
-
 def view_expenses():
     try:
         with open("expenses.txt", "r") as file:
