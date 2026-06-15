@@ -1,15 +1,20 @@
-def add_expence():
-    amount= int(input("please enter your amount:- "))
-    category=input("Please enter your category:- ")
+from datetime import date
 
-    with open("expenses.txt", "a") as file: 
-              file.write(f"{amount},{category}\n")
-    print("Expence added succcefully!")
+
+def add_expense():
+    amount = input("Enter amount: ")
+    category = input("Enter category: ")
+
+    today = date.today()
+
+    with open("expenses.txt", "a") as file:
+        file.write(f"{today},{amount},{category}\n")
+
+    print("Expense added successfully!")
 
 
 def view_expenses():
     try:
-
         with open("expenses.txt", "r") as file:
             expenses = file.readlines()
 
@@ -17,49 +22,252 @@ def view_expenses():
             print("No expenses found.")
             return
 
-        print("\n--- Expenses ---")
+        print("\n===== EXPENSES =====")
 
         for expense in expenses:
-            amount, category = expense.strip().split(",")
-            print(f"₹{amount} - {category}")
+            parts = expense.strip().split(",")
+
+            if len(parts) == 3:
+                expense_date, amount, category = parts
+                print(f"{expense_date} | Rs.{amount} | {category}")
+
+            elif len(parts) == 2:
+                amount, category = parts
+                print(f"No Date | Rs.{amount} | {category}")
 
     except FileNotFoundError:
         print("No expense file found.")
 
+
 def total_spending():
-    total=0
+    total = 0
 
     try:
-
         with open("expenses.txt", "r") as file:
             for line in file:
-                amount, category = line.strip().split(",")
-                total += int(amount)
-        print(f"\nTotal Spending: ₹{total}")
+                parts = line.strip().split(",")
+
+                if len(parts) == 3:
+                    _, amount, _ = parts
+                else:
+                    amount, _ = parts
+
+                total += float(amount)
+
+        print(f"\nTotal Spending: Rs.{total}")
 
     except FileNotFoundError:
-         print("No expense file found.")
+        print("No expense file found.")
+
+
+def set_allowance():
+    allowance = input("Enter allowance: ")
+
+    with open("allowance.txt", "w") as file:
+        file.write(allowance)
+
+    with open("allowance_history.txt", "a") as file:
+        file.write(f"Set Allowance Rs.{allowance}\n")
+
+    print("Allowance saved!")
+
+def view_allowance():
+    try:
+        with open("allowance.txt", "r") as file:
+            allowance = float(file.read())
+
+        print(f"\nCurrent Allowance: Rs.{allowance}")
+
+    except FileNotFoundError:
+        print("No allowance set yet.")
+
+def add_allowance():
+    try:
+        with open("allowance.txt", "r") as file:
+            allowance = float(file.read())
+    except FileNotFoundError:
+        allowance = 0
+
+    amount = float(input("Enter amount to add: "))
+    allowance += amount
+
+    with open("allowance.txt", "w") as file:
+        file.write(str(allowance))
+
+    with open("allowance_history.txt", "a") as file:
+        file.write(f"Added Rs.{amount}\n")
+
+    print(f"New Allowance: Rs.{allowance}")
+
+
+def reduce_allowance():
+    try:
+        with open("allowance.txt", "r") as file:
+            allowance = float(file.read())
+    except FileNotFoundError:
+        print("Please set allowance first.")
+        return
+
+    amount = float(input("Enter amount to reduce: "))
+    allowance -= amount
+
+    with open("allowance.txt", "w") as file:
+        file.write(str(allowance))
+
+    with open("allowance_history.txt", "a") as file:
+        file.write(f"Reduced Rs.{amount}\n")
+
+    print(f"New Allowance: Rs.{allowance}")
+
+
+def remaining_money():
+    try:
+        with open("allowance.txt", "r") as file:
+            allowance = float(file.read())
+
+        total = 0
+
+        try:
+            with open("expenses.txt", "r") as file:
+                for line in file:
+                    parts = line.strip().split(",")
+
+                    if len(parts) == 3:
+                        _, amount, _ = parts
+                    else:
+                        amount, _ = parts
+
+                    total += float(amount)
+
+        except FileNotFoundError:
+            pass
+
+        remaining = allowance - total
+
+        print(f"Allowance: Rs.{allowance}")
+        print(f"Spent: Rs.{total}")
+        print(f"Remaining: Rs.{remaining}")
+
+        if remaining < 0:
+            print("WARNING! You exceeded your allowance!")
+
+    except FileNotFoundError:
+        print("Please set allowance first.")
+
+
+def search_expense():
+    keyword = input("Enter category to search: ")
+
+    found = False
+
+    try:
+        with open("expenses.txt", "r") as file:
+            for line in file:
+                if keyword.lower() in line.lower():
+                    print(line.strip())
+                    found = True
+
+        if not found:
+            print("No matching expense found.")
+
+    except FileNotFoundError:
+        print("No expense file found.")
+
+
+def expense_history():
+    try:
+        with open("expenses.txt", "r") as file:
+            expenses = file.readlines()
+
+        if not expenses:
+            print("No expense history found.")
+            return
+
+        print("\n===== EXPENSE HISTORY =====")
+
+        for i, expense in enumerate(expenses, start=1):
+            print(f"{i}. {expense.strip()}")
+
+    except FileNotFoundError:
+        print("No expense history found.")
+
+
+def allowance_history():
+    try:
+        with open("allowance_history.txt", "r") as file:
+            history = file.readlines()
+
+        if not history:
+            print("No allowance history found.")
+            return
+
+        print("\n===== ALLOWANCE HISTORY =====")
+
+        for line in history:
+            print(line.strip())
+
+    except FileNotFoundError:
+        print("No allowance history found.")
+
 
 while True:
-    print("\n===== Expense Tracker =====")
-    print("1. Add Expense")
-    print("2. View Expenses")
-    print("3. Total Spending")
-    print("4. Exit")
+    print("\n===== EXPENSE TRACKER =====")
+    print("1. Set Allowance")
+    print("2. View Allowance")
+    print("3. Add Allowance")
+    print("4. Reduce Allowance")
+    print("5. Add Expense")
+    print("6. View Expenses")
+    print("7. Total Spending")
+    print("8. Remaining Money")
+    print("9. Search Expense")
+    print("10. Expense History")
+    print("11. Allowance History")
+    print("12. Exit")
 
     choice = input("Enter your choice: ")
 
     if choice == "1":
-        add_expence()
-    elif choice == "2":
-        view_expenses()
-    elif choice == "3":
-        total_spending()
-    elif choice == "4":
-        print("Goodbye!")
+        set_allowance()
 
-    break
+    elif choice == "2":
+        view_allowance()
+
+    elif choice == "3":
+            add_allowance()
+
+    elif choice == "4":
+        reduce_allowance()
+
+    elif choice == "5":
+        add_expense()
+
+    elif choice == "6":
+        view_expenses()
+
+    elif choice == "7":
+        total_spending()
+
+    elif choice == "8":
+        remaining_money()
+
+    elif choice == "9":
+        search_expense()
+
+    elif choice == "10":
+        expense_history()
+
+    elif choice == "11":
+        allowance_history()
+    
+ #  elif choice == "12":
+  #     view_allowance()
+   #    remaining_money()
+    #   allowance_history()
+        
+    elif choice == "12":
+        print("Goodbye!")
+        break
 
 else:
-        print("Invalid choice. Try again.")
-        
+    print("Invalid choice. Try again.")
